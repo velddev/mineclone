@@ -15,12 +15,12 @@ public class Chunk
     Block[][][] Blocks { get; }
     private MeshBuffer buffer;
     public bool Dirty { get; private set; }
+    public bool Generating { get; set; }
     private World world;
     public Vector2Int Position { get; private set; }
     [CanBeNull] private Mesh mesh = null;
+    public ChunkAccessor ChunkAccessor { get; set; }
 
-    public EventHandler OnChunkChanged { get; set; }
-    
     public Chunk()
     {
         Blocks = new Block[WIDTH][][];
@@ -85,6 +85,7 @@ public class Chunk
 
     public void SetBlock(Vector3Int position, [CanBeNull] BlockProperties block)
         => SetBlock(position.x, position.y, position.z, block);
+
     public void SetBlock(int x, int y, int z, [CanBeNull] BlockProperties properties)
     {
         var block = Blocks[x][y][z];
@@ -226,7 +227,12 @@ public class Chunk
 
     public void SetDirty()
     {
+        if (Dirty || Generating)
+        {
+            return;
+        }
+
         Dirty = true;
-        OnChunkChanged?.Invoke(this, EventArgs.Empty);
+        world.DirtyChunks.Enqueue(this);
     }
 }

@@ -1,29 +1,22 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class World
 {
-    private Dictionary<Vector2Int, Chunk> Chunks { get; } = new();
+    public ConcurrentQueue<Chunk> DirtyChunks { get; } = new();
+
+    private ConcurrentDictionary<Vector2Int, Chunk> Chunks { get; } = new();
 
     public Chunk GetChunk(int x, int y)
     {
-        if (Chunks.TryGetValue(new Vector2Int(x, y), out var chunk))
-        {
-            return chunk;
-        }
-
-        return null;
+        return Chunks.GetValueOrDefault(new Vector2Int(x, y));
     }
+
     public Chunk RequestChunk(int x, int y)
     {
-        var chunk = GetChunk(x, y);
-        if (chunk == null)
-        {
-            return GenerateChunk(x, y); 
-        }
-
-        return chunk;
+        return Chunks.GetOrAdd(new Vector2Int(x, y), key => GenerateChunk(key.x, key.y));
     }
 
     public Block GetBlock(int x, int y, int z)

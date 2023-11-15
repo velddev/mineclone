@@ -19,7 +19,7 @@ public class ChunkAccessor : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
 
         isStarted = true;
-        UpdateMesh(null, null);
+        UpdateMesh();
     }
     
     public void Init(Chunk chunk)
@@ -31,8 +31,8 @@ public class ChunkAccessor : MonoBehaviour
         }
         
         this.chunk = chunk;
-        chunk.OnChunkChanged += UpdateMesh;
         isInitialized = true;
+        UpdateMesh();
     }
 
     public Block GetBlock(Vector3 position)
@@ -71,24 +71,25 @@ public class ChunkAccessor : MonoBehaviour
             (int)Math.Floor(localizedPosition.z), block);
     }
 
-    private void UpdateMesh(object caller, EventArgs args)
+    public void UpdateMesh()
     {
         if (!isStarted)
         {
             Debug.Log("Ignored mesh update request, chunk has not started yet.");
             return;
         }
-        
+
         Debug.Log("Chunk " + chunk.Position + " updated!");
         var newMesh = chunk.GetMesh();
+
         if (meshFilter.mesh == newMesh)
         {
             return;
         }
-        
+
         meshFilter.mesh = chunk.GetMesh();
         meshCollider.sharedMesh = meshFilter.mesh;
     }
-    
+
     public Chunk GetChunk() => chunk;
 }
